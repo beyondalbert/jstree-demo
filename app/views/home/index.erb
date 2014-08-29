@@ -10,7 +10,7 @@
       // check_callbackc参数用于Contextmenu 和Drag & drop 插件，设置true后才能起作用
       'check_callback': true,
       'data': {
-        'url': 'home/tree_data',
+        'url': '/home/tree_data',
         'data': function(node) {
           return {node_id: node.id}
         }
@@ -54,13 +54,13 @@
     if (data.event.which == 1) {
       if (data.node.li_attr.class == 'file') {
         $.ajax({
-          url: 'home/show_file',
+          url: '/home/show_file',
           data: {id: data.node.id}
         });
       }
       else {
         $.ajax({
-          url: 'home/show_fold',
+          url: '/home/show_fold',
           data: {id: data.node.id}
         });
       }
@@ -99,7 +99,10 @@
           var node = inst.get_node(obj.reference);
           $.ajax({
             url: '/home/new_file',
-            data: {fold_id: node.id}
+            data: {fold_id: node.id},
+            success: function(data, textStatus, jqXHR) {
+              console.log("new file success!");
+            }
           });
         }
       },
