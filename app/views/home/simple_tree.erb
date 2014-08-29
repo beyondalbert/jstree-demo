@@ -1,0 +1,27 @@
+<div id="mytree-html">
+  <ul>
+    <li data-jstree='{"type": "fold"}'>文件夹1</li>
+    <li data-jstree='{"type": "fold"}'>文件夹2
+      <ul>
+        <li data-jstree='{"icon": "/assets/file.png"}'>文件1</li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+<script>
+  $('#mytree-html').bind('loaded.jstree', function(e, data) {
+    data.instance.open_all();
+  });
+  $('#mytree-html').jstree({
+    "types": {
+      "fold": {
+        "icon": ".<%= asset_path('fold.png') %>"
+      },
+      "file": {
+        "icon": ".<%= asset_path('file.png') %>"
+      }
+    },
+    'plugins': ['html_data', 'types', 'themes']
+  });
+</script>

@@ -1,0 +1,151 @@
+<div id="mytree">
+</div>
+
+<script>
+  $('#mytree').bind('loaded.jstree', function(e, data) {
+    data.instance.open_all();
+  });
+  $('#mytree').jstree({
+    'core': {
+      // check_callbackc参数用于Contextmenu 和Drag & drop 插件，设置true后才能起作用
+      'check_callback': true,
+      'data': {
+        'url': 'home/tree_data',
+        'data': function(node) {
+          return {node_id: node.id}
+        }
+      }
+    },
+    'types': {
+      '#': {
+        'valid_children': ['fold', 'file']
+      },
+      'fold': {
+        'icon': "<%= asset_path('fold.png') %>",
+        'valid_children': ['fold', 'file']
+      },
+      'file': {
+        'icon': "<%= asset_path('file.png') %>",
+        'valid_children': []
+      }
+    },
+    'plugins': ['types', 'dnd', 'contextmenu', 'wholerow'],
+    'contextmenu': {
+      'items': customMenu
+    }
+  });
+
+  //处理树的节点移动事件
+  $('#mytree').bind('move_node.jstree', function(e, data) {
+    console.log(data);
+    $.ajax({
+      url: '/home/move_node',
+      type: 'POST',
+      data: {id: data.node.id, old_parent: data.old_parent, old_position: data.old_position, parent: data.parent, position: data.position},
+      success: function(data, textStatus, jqXHR) {
+        console.log('move node successfully!');
+      }
+    });
+  });
+
+  // 处理树中节点的左键单击选中事件
+  $('#mytree').bind('select_node.jstree', function(e, data) {
+    // 只有左键选中node才触发ajax操作
+    if (data.event.which == 1) {
+      if (data.node.li_attr.class == 'file') {
+        $.ajax({
+          url: 'home/show_file',
+          data: {id: data.node.id}
+        });
+      }
+      else {
+        $.ajax({
+          url: 'home/show_fold',
+          data: {id: data.node.id}
+        });
+      }
+    }
+  });
+
+  // 处理树中节点的重命名事件
+  $('#mytree').bind('rename_node.jstree', function(e, data) {
+    $.ajax({
+      url: '/home/node_rename',
+      type: 'POST',
+      data: {id: data.node.id, new_name: data.node.text},
+      success: function(data, textStatus, jqXHR) {
+        console.log("rename successfully!");
+      }
+    });
+  });
+
+  // 自定义右键菜单
+  function customMenu(node) {
+    var items = {
+      'createSubFold': {
+        'label': '新建子目录',
+        'action': function(obj) {
+          var inst = $.jstree.reference(obj.reference);
+          var node = inst.get_node(obj.reference);
+          inst.create_node(node, {}, 'last', function(new_node) {
+            setTimeout(function() {inst.edit(new_node);}, 0);
+          });
+        }
+      },
+      'createfile': {
+        'label': '新建文件',
+        'action': function(obj) {
+          var inst = $.jstree.reference(obj.reference);
+          var node = inst.get_node(obj.reference);
+          $.ajax({
+            url: '/home/new_file',
+            data: {fold_id: node.id}
+          });
+        }
+      },
+      'rename': {
+        'label': '重命名',
+        'action': function(obj) {
+          var inst = $.jstree.reference(obj.reference);
+          var node = inst.get_node(obj.reference);
+          inst.edit(node);
+        }
+      },
+      'edit': {
+        'label': '编辑',
+        'submenu': {
+          'cut': {
+            'label': '剪切',
+            'action': function(obj) {}
+          },
+          'copy': {
+            'label': '复制',
+            'action': function(obj) {}
+          },
+          'paste': {
+            'label': '粘帖',
+            'action': function(obj) {}
+          },
+        }
+      },
+      'destroy': {
+        'label': '删除',
+        'action': function(obj) {
+          var inst = $.jstree.reference(obj.reference);
+          var node = inst.get_node(obj.reference);
+          $.ajax({
+            url: '/home/destroy_node',
+            type: 'DELETE',
+            data: {id: node.id}
+          });
+        }
+      }
+    };
+
+    // 当树的节点是文件时，右键菜单没有新建子文件夹
+    if (node.li_attr.class == 'file') {
+      delete items.createSubFold;
+    }
+    return items;
+  }
+</script>
