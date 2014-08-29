@@ -9,6 +9,7 @@ Rails.application.routes.draw do
   get 'home/new_file'
   delete 'home/destroy_node'
   get 'home/simple_tree'
+  get 'home/index'
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 
